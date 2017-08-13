@@ -1,5 +1,5 @@
 # SpotMusicJava
-This is a java maven project. Contact me if you have any questions.
+This is a java maven project for course 605.782. Contact me if you have any questions.
 ## Getting started:
 - `git clone https://github.com/hanq08/SpotMusicJava.git`
 - Eclipse:
