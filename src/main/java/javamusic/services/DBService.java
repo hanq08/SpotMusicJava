@@ -1,5 +1,6 @@
 package javamusic.services;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -8,7 +9,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
 
-import javamusic.models.Order;
+import javamusic.models.UserAlbum;
 import javamusic.models.User;
 
 public class DBService {
@@ -21,7 +22,7 @@ public class DBService {
 		factory = new Configuration()
 				.configure()
 				.addAnnotatedClass(User.class)
-				.addAnnotatedClass(Order.class)
+				.addAnnotatedClass(UserAlbum.class)
 				.buildSessionFactory();
 
 	}
@@ -32,11 +33,12 @@ public class DBService {
 		return dbservice;
 	}
 	
-	public void createUser(String username, String password){
-		Session session = factory.getCurrentSession();
+	public void saveUser(User user){
+		Session session = factory.openSession();
 		session.beginTransaction();
-		session.save( new User(username, password));
+		session.saveOrUpdate(user);
 		session.getTransaction().commit();
+		session.close();
 	}
 	
 	public void updateUser(){
@@ -44,15 +46,25 @@ public class DBService {
 	}
 	
 	public User getUser(int id){
-		Session session = factory.getCurrentSession();
+		Session session = factory.openSession();
 		session.beginTransaction();
 		Query query = session.createQuery("SELECT User U Where U.id=" + id);
 		List results = query.list();
 		return (User)results.get(0);
 	}
 	
+	public User getUser(String username){
+		Session session = factory.openSession();
+		session.beginTransaction();
+		Query query = session.createQuery("FROM User U Where U.username = :name");
+		query.setParameter("name", username);
+		User user = (User)query.uniqueResult();
+		session.close();
+		return user;
+	}
+	
 	public List<User> getUsers(){
-		Session session = factory.getCurrentSession();
+		Session session = factory.openSession();
 		session.beginTransaction();
 		Query<User> query = session.createQuery("FROM User");
 		List<User> results = query.list();
@@ -60,7 +72,7 @@ public class DBService {
 	}
 	
 	public void deleteUser(int id){
-		Session session = factory.getCurrentSession();
+		Session session = factory.openSession();
 		User user = (User) session.load(User.class,id);
 	    session.delete(user);
 
@@ -68,23 +80,21 @@ public class DBService {
 	    session.flush() ;
 	}
 	
-	public Set<Order> getUserOrders(int user_id){
+	public Set<UserAlbum> getUserOrders(int user_id){
 		return this.getUser(user_id).getOrders();
 	}
 	
-	public void createOrder(User user, int album_id){
-		Session session = factory.getCurrentSession();
+	public void addOrder(User user, String album_id){
+		Session session = factory.openSession();
 		session.beginTransaction();
-		session.save(new Order(user, album_id));
+		UserAlbum order = new UserAlbum(user, album_id);
+		if (user.getOrders() == null){
+			user.setOrders(new HashSet<UserAlbum>());
+		}
+		user.getOrders().add(order);
+		session.update(user);
 		session.getTransaction().commit();
-	}
-	
-	public Order getOrder(int id){
-		Session session = factory.getCurrentSession();
-		session.beginTransaction();
-		Query query = session.createQuery("SELECT Order O Where O.id=" + id);
-		List results = query.list();
-		return (Order)results.get(0);
+		session.close();
 	}
 	
 }

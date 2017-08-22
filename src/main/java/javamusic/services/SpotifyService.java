@@ -28,25 +28,29 @@ public class SpotifyService {
 	public static synchronized SpotifyService getInstance(){
 		if (spotifyService == null) {
 			spotifyService = new SpotifyService();
+			spotifyService.authorize();
+			
 		}
 		return spotifyService;
 	}
 	
 	final String clientId = "fe2d7ef199f649839f9a7d671a18eb9b";
 	final String clientSecret = "0ce362923c2444f280f6ddf5c562ab38";
-
-	final Api api = Api.builder()
-	  .clientId(clientId)
-	  .clientSecret(clientSecret)
-	  .build();
-
-	/* Create a request object. */
-	final ClientCredentialsGrantRequest request = api.clientCredentialsGrant().build();
-
-	/* Use the request object to make the request, either asynchronously (getAsync) or synchronously (get) */
-	final SettableFuture<ClientCredentials> responseFuture = request.getAsync();
-
+	private Api api;
+	private ClientCredentialsGrantRequest request;
+	private SettableFuture<ClientCredentials> responseFuture;
 	private void authorize(){
+		
+		api = Api.builder()
+		  .clientId(clientId)
+		  .clientSecret(clientSecret)
+		  .build(); 
+		/* Create a request object. */
+		request = api.clientCredentialsGrant().build();
+		/* Use the request object to make the request, either asynchronously (getAsync) or synchronously (get) */
+		responseFuture = request.getAsync();
+
+	
 		/* Add callback to handle success and failure */
     	Futures.addCallback(responseFuture, new FutureCallback<ClientCredentials>() {
     	  public void onSuccess(ClientCredentials clientCredentials) {
@@ -82,7 +86,8 @@ public class SpotifyService {
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		  if (e.getMessage().equals("401")){
-			  authorize();
+			  api.setAccessToken(null);
+			  this.authorize();
 			  return getAlbumById(id);
 		  }
 		  System.out.println("Could not get albums.");
@@ -102,7 +107,8 @@ public class SpotifyService {
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		  if (e.getMessage().equals("401")){
-			  authorize();
+			  api.setAccessToken(null);
+			  this.authorize();
 			  return getAlbumByArtist(id);
 		  }
 		  System.out.println("Could not get albums.");
@@ -115,15 +121,16 @@ public class SpotifyService {
 		NewReleasesRequest request = api.getNewReleases().build();
 		// Retrieve an album
 		try {
+		  
 		  NewReleases albums = request.get();
 		  return albums.getAlbums().getItems();
 		  
 		} catch (Exception e) {
 		  System.out.println(e.getMessage());
 		  if (e.getMessage().equals("401")){
-			  
+			  api.setAccessToken(null);
 			  System.out.println("set token");
-			  authorize();
+			  this.authorize();
 			  return getNewReleases();
 		  }
 		  System.out.println("Could not get albums.");
@@ -145,7 +152,8 @@ public class SpotifyService {
 		} catch (Exception e) {
 		  System.out.println(e.getMessage());
 		  if (e.getMessage().equals("401")){
-			  authorize();
+			  api.setAccessToken(null);
+			  this.authorize();
 			  return searchArtist(query);
 		  }
 		  System.out.println("Could not get artists.");
@@ -166,7 +174,8 @@ public class SpotifyService {
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		  if (e.getMessage().equals("401")){
-			  authorize();
+			  api.setAccessToken(null);
+			  this.authorize();
 			  return searchAlbums(query);
 		  }
 		  System.out.println("Could not get albums.");

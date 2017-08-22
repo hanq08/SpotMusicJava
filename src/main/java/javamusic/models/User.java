@@ -1,10 +1,12 @@
 package javamusic.models;
 
+import java.io.Serializable;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -12,31 +14,33 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import javamusic.models.UserAlbum;
+
 @Entity
-@Table(name = "user")
-public class User {
+@Table(name = "User")
+public class User implements Serializable{
 	@Id
 	@Column(name="id")
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private int id;
 	
 	@Column(name="username", unique=true)
-	private String userame;
+	private String username;
 	
 	@Column(name="password")
 	private String password;
 	
-	@OneToMany(cascade=CascadeType.ALL)
-	@JoinColumn(name="ORDER_ID")
-	private Set<Order> orders;
+	@OneToMany(fetch = FetchType.EAGER, mappedBy="user", cascade=CascadeType.ALL)
+	private Set<UserAlbum> orders;
 
 	public User(){
 		
 	}
 
-	public User(String userame, String password) {
-		this.userame = userame;
+	public User(String username, String password, Set<UserAlbum> orders) {
+		this.username = username;
 		this.password = password;
+		this.orders = orders;
 	}
 
 	public int getId() {
@@ -47,12 +51,12 @@ public class User {
 		this.id = id;
 	}
 
-	public String getUserame() {
-		return userame;
+	public String getUsername() {
+		return username;
 	}
 
-	public void setUserame(String userame) {
-		this.userame = userame;
+	public void setUsername(String username) {
+		this.username = username;
 	}
 
 	public String getPassword() {
@@ -63,12 +67,13 @@ public class User {
 		this.password = password;
 	}
 
-	public Set<Order> getOrders() {
+	public Set<UserAlbum> getOrders() {
 		return orders;
 	}
 
-	public void setOrders(Set<Order> orders) {
+	public void setOrders(Set<UserAlbum> orders) {
 		this.orders = orders;
 	}
 	
 }
+
